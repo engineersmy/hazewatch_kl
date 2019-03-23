@@ -7,8 +7,8 @@ The M5Stack is a microcontroller based on ESP32, by default have micropython on 
 
 ## Bill of Material
 
-* M5Stack Fire - RM207.29(USD51)
-* Honeywell HPM Sensor - RM209.00(USD51.42)
+* [M5Stack Fire](https://www.aliexpress.com/store/product/M5Stack-NEW-PSRAM-2-0-FIRE-IoT-Kit-Dual-Core-ESP32-16M-FLash-4M-PSRAM-Development/3226069_32847906756.html?spm=2114.12010615.8148356.5.10b2562364axVV) - RM207.29(USD51)
+* [Honeywell HPM Sensor](https://www.cytron.io/p-honeywell-pm2.5-particle-sensor-module?search=pm2.5&description=1&src=search) - RM209.00(USD51.42)
 
 ## Source code 
 
@@ -29,5 +29,5 @@ Note that favoriot api service, you will need to register this first. Still tryi
 
 ## Random note
 
-* It is possible to change the M5Stack type with only a core and m5go
+* It is possible to change the M5Stack type with only a [core](https://docs.m5stack.com/#/en/core/basic) and [m5go base](https://docs.m5stack.com/#/en/base/m5go_bottom). But didn't try, it should work though. 
 * It is also possible to adapt this code to ESP32 and ESP8266
