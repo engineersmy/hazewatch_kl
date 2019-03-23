@@ -7,7 +7,7 @@ The M5Stack is a microcontroller based on ESP32, by default have micropython on 
 
 ## Bill of Material
 
-* [M5Stack Fire](https://www.aliexpress.com/store/product/M5Stack-NEW-PSRAM-2-0-FIRE-IoT-Kit-Dual-Core-ESP32-16M-FLash-4M-PSRAM-Development/3226069_32847906756.html?spm=2114.12010615.8148356.5.10b2562364axVV) - RM207.29(USD51)
+* [M5Stack Fire](https://www.aliexpress.com/store/product/M5Stack-NEW-PSRAM-2-0-FIRE-IoT-Kit-Dual-Core-ESP32-16M-FLash-4M-PSRAM-Development/3226069_32847906756.html?spm=2114.12010615.8148356.5.10b2562364axVV) - RM207.29(USD51) the price include delivery
 * [Honeywell HPM Sensor](https://www.cytron.io/p-honeywell-pm2.5-particle-sensor-module?search=pm2.5&description=1&src=search) - RM209.00(USD51.42)
 
 ## Source code 
