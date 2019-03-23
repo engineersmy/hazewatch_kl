@@ -34,4 +34,5 @@ Note that I use `ampy` here, but it stopped being updated. I suggest rshell for 
 ## Random note
 
 * It is possible to change the M5Stack type with only a [core](https://docs.m5stack.com/#/en/core/basic) and [m5go base](https://docs.m5stack.com/#/en/base/m5go_bottom). But didn't try, it should work though. 
+  * We can' use the core unit directly because the Particulate sensor output in UART, the core unit don't have it. Only the m5go base have it. 
 * It is also possible to adapt this code to ESP32 and ESP8266
