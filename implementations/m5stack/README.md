@@ -5,6 +5,8 @@
 
 The M5Stack is a microcontroller based on ESP32, by default have micropython on board and it is arduino compatible. The code to read from the HPM Sensor is written with micropython. 
 
+This is no mean the cheapest to do this, but this is easiest to bring it up. It don't require extra soldering, and lesser messy wires, support python so the code is easier to change.
+
 ## Bill of Material
 
 * [M5Stack Fire](https://www.aliexpress.com/store/product/M5Stack-NEW-PSRAM-2-0-FIRE-IoT-Kit-Dual-Core-ESP32-16M-FLash-4M-PSRAM-Development/3226069_32847906756.html?spm=2114.12010615.8148356.5.10b2562364axVV) - RM207.29(USD51) the price include delivery
