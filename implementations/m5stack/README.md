@@ -25,6 +25,8 @@ Note that favoriot api service, you will need to register this first. Still tryi
 `ampy --port /dev/ttyUSB0 put cytron_pm25.py /flash/apps/cytron_pm25.py`
 * You should be able to see `cytron_pm25` under apps
 
+Note that I use `ampy` here, but it stopped being updated. I suggest rshell for micropython which I am still getting used to. 
+
 ![alt text](IMG_20190318_214619.jpg)
 
 ## Random note
