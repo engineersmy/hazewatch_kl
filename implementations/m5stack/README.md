@@ -1,6 +1,6 @@
 # M5Stack + Honeywell PM2.5
 
-![alt text](https://raw.githubusercontent.com/engineersmy/hazewatch_kl/implementations/m5stack/DSC03877.JPG)
+![alt text](DSC03877.JPG)
 
 
 The M5Stack is a microcontroller based on ESP32, by default have micropython on board and it is arduino compatible. The code to read from the HPM Sensor is written with micropython. 
@@ -25,7 +25,7 @@ Note that favoriot api service, you will need to register this first. Still tryi
 `ampy --port /dev/ttyUSB0 put cytron_pm25.py /flash/apps/cytron_pm25.py`
 * You should be able to see `cytron_pm25` under apps
 
-![alt text](https://raw.githubusercontent.com/engineersmy/hazewatch_kl/implementations/m5stack/IMG_20190318_214619.jpg)
+![alt text](IMG_20190318_214619.jpg)
 
 ## Random note
 
