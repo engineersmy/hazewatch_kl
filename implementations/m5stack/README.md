@@ -5,7 +5,7 @@
 
 The M5Stack is a microcontroller based on ESP32, by default have micropython on board and it is arduino compatible. The code to read from the HPM Sensor is written with micropython. 
 
-This is no mean the cheapest way to do this, but this is easiest to bring it up. It don't require extra soldering, and don't have many messy wires, support python so the code is easier to change.
+This is no mean the cheapest way to do this, but this is easiest to bring it up. It don't require extra soldering, and don't have many messy wires, support python so the code is easier to change. This device already have a battery, so do not need external powersource like a powerbank. It have extra UART that can supply 5v, so it can communicate to the HPM sensor and supply enough power to it without yet another power source. This make this setup very portable.
 
 ## Bill of Material
 
