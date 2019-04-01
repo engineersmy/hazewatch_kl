@@ -7,6 +7,36 @@ import network
 import urequests
 import ujson
 
+def fetch_sensor(uart2):
+    # The command to start measurement
+    # source https://sensing.honeywell.com/honeywell-sensing-hpm-series-particle-sensors-datasheet-32322550-e-en.pdf
+    # Page 5
+    uart2.write('\x68\x01\x01\x96')
+    data=uart2.read(32)
+    # Opps there is problem, 
+    # call the command to stop measurement every time there is problem
+    if not data:
+        uart2.write('\x68\x01\x02\x95')
+        return (None, None)
+    # Should only have 32 bit of data
+    if len(data) != 32:
+        uart2.write('\x68\x01\x02\x95')
+        return (None, None)
+    # measurement must start with 0x42
+    if data[0] != 0x42:
+        uart2.write('\x68\x01\x02\x95')
+        return (None, data)
+    l = list(data)
+    # The number is big endian. Also drop the first 4 byte
+    # Covert the rest into 14 number
+    frame = struct.unpack(">HHHHHHHHHHHHHH", bytes(l[4:]))
+    # I really only care about frame[1] and frame[2]. WHich is PM2.5 and PM10
+    # Source https://sensing.honeywell.com/honeywell-sensing-hpm-series-particle-sensors-datasheet-32322550-e-en.pdf
+    # Page 6
+    pm25=frame[1]
+    pm100=frame[2]
+    return (pm25, pm100)
+
 # load config
 f = open("/flash/hazeconf.json")
 config = ujson.loads(f.read())
@@ -28,41 +58,13 @@ if wlan.isconnected():
         # Making data display more reasonable
         time.sleep_ms(750)
         lcd.clear()
-        # The command to start measurement
-        # source https://sensing.honeywell.com/honeywell-sensing-hpm-series-particle-sensors-datasheet-32322550-e-en.pdf
-        # Page 5
-        uart2.write('\x68\x01\x01\x96')
-        data=uart2.read(32)
         # Opps there is problem, 
-        # call the command to stop measurement every time there is problem
-        if not data:
-            lcd.print("No data", 20, 20)
-            uart2.write('\x68\x01\x02\x95')
-            continue
-        # Should only have 32 bit of data
-        if len(data) != 32:
-            lcd.print("Bad data", 20, 20)
-            lcd.print(data, 20, 30)
-            uart2.write('\x68\x01\x02\x95')
-            continue
-        # measurement must start with 0x42
-        if data[0] != 0x42:
-            lcd.print("Bad data", 20, 20)
-            lcd.print(data, 20, 30)
-            uart2.write('\x68\x01\x02\x95')
-            continue
-        l = list(data)
-        # The number is big endian. Also drop the first 4 byte
-        # Covert the rest into 14 number
-        frame = struct.unpack(">HHHHHHHHHHHHHH", bytes(l[4:]))
-        # I really only care about frame[1] and frame[2]. WHich is PM2.5 and PM10
-        # Source https://sensing.honeywell.com/honeywell-sensing-hpm-series-particle-sensors-datasheet-32322550-e-en.pdf
-        # Page 6
-        pm25=frame[1]
-        pm100=frame[2]
+        pm25, pm100 = fetch_sensor(uart2)
         #output = "PM 2.5 = {pm25}".format(pm25=pm25)
         lcd.print(pm25, 20, 30)
         lcd.print(pm100, 20, 40)
+        if not (pm25 or pm100):
+            continue
         lcd.print("posting", 20, 50)
         try:
             headers = {"apikey":config["apikey"]}
@@ -70,14 +72,14 @@ if wlan.isconnected():
                 "device_developer_id":config["device_id"],
                 "data": {"pm2.5": pm25, "pm10":pm100}
             }
-            r = urequests.post("https://api.favoriot.com/v1/streams", headers=headers, json=data)
-            lcd.print("posted", 20, 60)
-            lcd.print(r.status_code, 20, 70)
-            result = r.json()
-            lcd.print(result["status"], 20, 80)
+            for endpoint in config["endpoints"]:
+                r = urequests.post(endpoint, headers=headers, json=data)
+                lcd.print(endpoint, 20, 60)
+                lcd.print(r.status_code, 20, 70)
+                result = r.json()
+                lcd.print(result["status"], 20, 80)
             # be nice send data every 10 minute
             time.sleep(1000)
 
         except Exception as e:
-            lcd.print(str(e), 20, 60)
-        uart2.write('\x68\x01\x02\x95')
+            lcd.print(str(e), 20, 90)
