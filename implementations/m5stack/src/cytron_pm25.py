@@ -7,6 +7,11 @@ import network
 import urequests
 import ujson
 
+
+class SensorException(Exception):
+    pass
+
+
 def fetch_sensor(uart2):
     # The command to start measurement
     # source https://sensing.honeywell.com/honeywell-sensing-hpm-series-particle-sensors-datasheet-32322550-e-en.pdf
@@ -17,15 +22,15 @@ def fetch_sensor(uart2):
     # call the command to stop measurement every time there is problem
     if not data:
         uart2.write('\x68\x01\x02\x95')
-        return (None, None)
+        raise SensorException("There is no data")
     # Should only have 32 bit of data
     if len(data) != 32:
         uart2.write('\x68\x01\x02\x95')
-        return (None, None)
+        raise SensorException("Data length is wrong")
     # measurement must start with 0x42
     if data[0] != 0x42:
         uart2.write('\x68\x01\x02\x95')
-        return (None, data)
+        raise SensorException("Data is wrong format")
     l = list(data)
     # The number is big endian. Also drop the first 4 byte
     # Covert the rest into 14 number
@@ -58,28 +63,35 @@ if wlan.isconnected():
         # Making data display more reasonable
         time.sleep_ms(750)
         lcd.clear()
-        # Opps there is problem, 
-        pm25, pm100 = fetch_sensor(uart2)
-        #output = "PM 2.5 = {pm25}".format(pm25=pm25)
-        lcd.print(pm25, 20, 30)
-        lcd.print(pm100, 20, 40)
-        if not (pm25 or pm100):
+        try:
+            pm25, pm100 = fetch_sensor(uart2)
+            #output = "PM 2.5 = {pm25}".format(pm25=pm25)
+            lcd.print(pm25, 20, 30)
+            lcd.print(pm100, 20, 40)
+        except SensorException as e:
+            lcd.print("There is an error", 20, 50)
+            lcd.print(str(e))
             continue
         lcd.print("posting", 20, 50)
         try:
-            headers = {"apikey":config["apikey"]}
-            data = {
-                "device_developer_id":config["device_id"],
-                "data": {"pm2.5": pm25, "pm10":pm100}
-            }
-            for endpoint in config["endpoints"]:
-                r = urequests.post(endpoint, headers=headers, json=data)
-                lcd.print(endpoint, 20, 60)
-                lcd.print(r.status_code, 20, 70)
-                result = r.json()
-                lcd.print(result["status"], 20, 80)
+            if config.get("influxdb"):
+                coord_x = config["coord_x"]
+                coord_y = config["coord_y"]
+                data = f"measurement pm25={pm25},pm10={pm10},x={coord_x},y={coord_y}"
+                headers = {} 
+            else:
+                headers = {"apikey":config["apikey"]}
+                data = {
+                    "device_developer_id":config["device_id"],
+                    "data": {"pm2.5": pm25, "pm10":pm100}
+                }
+            r = urequests.post(config["endpoint"], headers=headers, json=data)
+            lcd.print(endpoint, 20, 60)
+            lcd.print(r.status_code, 20, 70)
+            result = r.json()
+            lcd.print(result["status"], 20, 80)
             # be nice send data every 10 minute
-            time.sleep(1000)
+            time.sleep(60)
 
         except Exception as e:
             lcd.print(str(e), 20, 90)
