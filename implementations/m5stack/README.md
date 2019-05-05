@@ -20,6 +20,7 @@ Source code is written with micropython, it can be found in `src` directory
 
 Note that this uses favoriot api service, you will need to register this first. Still trying to figure out how to have people contribute data to a central repository.
 
+* Copy `hazeconf_template.json` to `hazeconf.json`
 * Change the settings in `hazeconf.json`
 * copy `hazeconf.json` to `/flash`
 `ampy --port /dev/ttyUSB0 put hazeconf.json /flash/hazeconf.json`
