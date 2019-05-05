@@ -77,7 +77,7 @@ if wlan.isconnected():
             if config.get("influxdb"):
                 coord_x = config["coord_x"]
                 coord_y = config["coord_y"]
-                data = f"measurement pm25={pm25},pm10={pm10},x={coord_x},y={coord_y}"
+                data = "measurement pm25={pm25},pm10={pm10},x={coord_x},y={coord_y}".format(pm25=pm25, pm10=pm10, coord_x=coord_x, coord_y=coord_y)
                 headers = {} 
             else:
                 headers = {"apikey":config["apikey"]}
