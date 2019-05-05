@@ -61,7 +61,6 @@ if wlan.isconnected():
     uart2.init(9600)
     while True:
         # Making data display more reasonable
-        time.sleep_ms(750)
         lcd.clear()
         try:
             pm25, pm100 = fetch_sensor(uart2)
@@ -77,21 +76,19 @@ if wlan.isconnected():
             if config.get("influxdb"):
                 coord_x = config["coord_x"]
                 coord_y = config["coord_y"]
-                data = "measurement pm25={pm25},pm10={pm10},x={coord_x},y={coord_y}".format(pm25=pm25, pm10=pm10, coord_x=coord_x, coord_y=coord_y)
-                headers = {} 
+                data = "pmvalue pm25={pm25},pm10={pm10},x={coord_x},y={coord_y}".format(pm25=pm25, pm10=pm100, coord_x=coord_x, coord_y=coord_y)
+                r = urequests.post(config["endpoint"], data=data)
             else:
                 headers = {"apikey":config["apikey"]}
                 data = {
                     "device_developer_id":config["device_id"],
                     "data": {"pm2.5": pm25, "pm10":pm100}
                 }
-            r = urequests.post(config["endpoint"], headers=headers, json=data)
-            lcd.print(endpoint, 20, 60)
-            lcd.print(r.status_code, 20, 70)
-            result = r.json()
-            lcd.print(result["status"], 20, 80)
+                r = urequests.post(config["endpoint"], headers=headers, json=data)
+            lcd.print(config["endpoint"], 20, 70)
+            lcd.print(r.status_code, 20, 90)
             # be nice send data every 10 minute
-            time.sleep(60)
+            time.sleep(10)
 
         except Exception as e:
             lcd.print(str(e), 20, 90)
