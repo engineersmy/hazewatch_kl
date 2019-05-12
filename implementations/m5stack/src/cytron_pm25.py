@@ -6,7 +6,7 @@ import struct
 import network
 import urequests
 import ujson
-
+import ubinascii
 
 class SensorException(Exception):
     pass
@@ -62,6 +62,8 @@ if wlan.isconnected():
     while True:
         # Making data display more reasonable
         lcd.clear()
+        
+        mac_addr = ubinascii.hexlify(wlan.config('mac'), "-").decode()
         try:
             pm25, pm100 = fetch_sensor(uart2)
             #output = "PM 2.5 = {pm25}".format(pm25=pm25)
@@ -72,11 +74,13 @@ if wlan.isconnected():
             lcd.print(str(e))
             continue
         lcd.print("posting", 20, 50)
+        lcd.print(mac_addr, 20, 60)
         try:
             if config.get("influxdb"):
                 coord_x = config["coord_x"]
                 coord_y = config["coord_y"]
-                data = "pmvalue pm25={pm25},pm10={pm10},x={coord_x},y={coord_y}".format(pm25=pm25, pm10=pm100, coord_x=coord_x, coord_y=coord_y)
+
+                data = "pmvalue,id={id} pm25={pm25},pm10={pm10},x={coord_x},y={coord_y}".format(pm25=pm25, pm10=pm100, coord_x=coord_x, coord_y=coord_y, id={mac_addr})
                 r = urequests.post(config["endpoint"], data=data)
             else:
                 headers = {"apikey":config["apikey"]}
@@ -88,7 +92,7 @@ if wlan.isconnected():
             lcd.print(config["endpoint"], 20, 70)
             lcd.print(r.status_code, 20, 90)
             # be nice send data every 10 minute
-            time.sleep(10)
+            time.sleep(300)
 
         except Exception as e:
             lcd.print(str(e), 20, 90)
