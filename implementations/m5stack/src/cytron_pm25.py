@@ -51,30 +51,29 @@ wlan = network.WLAN(network.STA_IF)
 wlan.active(True)
 wlan.connect(config["ssid"],config["password"])
 
-while not wlan.isconnected():
-    lcd.print("connecting", 20, 20)
-    lcd.clear()
+uart2 = UART(1, tx=17, rx=16)
+uart2.init(9600)
 
-if wlan.isconnected():
-    # This is the only UART that works. 
-    uart2 = UART(1, tx=17, rx=16)
-    uart2.init(9600)
-    while True:
-        # Making data display more reasonable
-        lcd.clear()
-        
-        mac_addr = ubinascii.hexlify(wlan.config('mac'), "-").decode()
-        try:
-            pm25, pm100 = fetch_sensor(uart2)
-            #output = "PM 2.5 = {pm25}".format(pm25=pm25)
-            lcd.print(pm25, 20, 30)
-            lcd.print(pm100, 20, 40)
-        except SensorException as e:
-            lcd.print("There is an error", 20, 50)
-            lcd.print(str(e))
-            continue
-        lcd.print("posting", 20, 50)
-        lcd.print(mac_addr, 20, 60)
+while True:
+    # Making data display more reasonable
+    lcd.clear()
+    if wlan.isconnected():
+        lcd.print("Connected", 20, 20)
+    else:
+        lcd.print("Not connected", 20, 20)
+
+    mac_addr = ubinascii.hexlify(wlan.config('mac'), "-").decode()
+    try:
+        pm25, pm100 = fetch_sensor(uart2)
+        #output = "PM 2.5 = {pm25}".format(pm25=pm25)
+        lcd.print(pm25, 20, 35)
+        lcd.print(pm100, 20, 50)
+    except SensorException as e:
+        lcd.print("There is an error", 20, 50)
+        lcd.print(str(e))
+        continue
+    # Only post if connected
+    if wlan.isconnected():
         try:
             if config.get("influxdb"):
                 coord_x = config["coord_x"]
@@ -89,10 +88,9 @@ if wlan.isconnected():
                     "data": {"pm2.5": pm25, "pm10":pm100}
                 }
                 r = urequests.post(config["endpoint"], headers=headers, json=data)
-            lcd.print(config["endpoint"], 20, 70)
-            lcd.print(r.status_code, 20, 90)
+            lcd.print(r.status_code, 20, 65)
             # be nice send data every 10 minute
             time.sleep(300)
 
         except Exception as e:
-            lcd.print(str(e), 20, 90)
+            lcd.print(str(e), 20, 65)
