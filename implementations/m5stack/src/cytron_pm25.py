@@ -54,24 +54,44 @@ wlan.connect(config["ssid"],config["password"])
 uart2 = UART(1, tx=17, rx=16)
 uart2.init(9600)
 
+CONNECTED = False
+SUBMITTED = False
+INITIAL = True
+
+# Why 100 than 10? because 25 is 2.5 * 10
+pm25 = 0
+pm100 = 100
+lcd.clear()
+conn_status = M5Circle(40, 10, 10, lcd.RED)
+
+pm25_label = M5TextBox(62, 40, "PM 2.5", lcd.FONT_DefaultSmall, 0xFFFFFF)
+pm100_label = M5TextBox(163, 40, "PM 10", lcd.FONT_DefaultSmall, 0xFFFFFF)
+pm25_text = M5TextBox(62, 66, str(pm25), lcd.FONT_DejaVu24, 0xFFFFFF)
+pm100_text = M5TextBox(163, 66, str(pm100), lcd.FONT_DejaVu24, 0xFFFFFF)
+last_ticks = time.ticks_ms()
+
 while True:
     # Making data display more reasonable
-    lcd.clear()
     if wlan.isconnected():
-        lcd.print("Connected", 20, 20)
+        conn_status.setBgColor(lcd.YELLOW)
     else:
-        lcd.print("Not connected", 20, 20)
+        conn_status.setBgColor(lcd.RED)
 
-    mac_addr = ubinascii.hexlify(wlan.config('mac'), "-").decode()
+    if not INITIAL:
+        current_ticks = time.ticks_ms()
+        if time.ticks_diff(current_ticks, last_ticks) < 300000:
+            continue
+        last_ticks = time.ticks_ms()
+
     try:
         pm25, pm100 = fetch_sensor(uart2)
-        #output = "PM 2.5 = {pm25}".format(pm25=pm25)
-        lcd.print(pm25, 20, 35)
-        lcd.print(pm100, 20, 50)
+        pm25_text.setText(str(pm25))
+        pm100_text.setText(str(pm100))
     except SensorException as e:
-        lcd.print("There is an error", 20, 50)
-        lcd.print(str(e))
+        pm25_text.setText("err")
+        pm100_text.setText("err")
         continue
+    INITIAL = False
     # Only post if connected
     if wlan.isconnected():
         try:
@@ -88,9 +108,8 @@ while True:
                     "data": {"pm2.5": pm25, "pm10":pm100}
                 }
                 r = urequests.post(config["endpoint"], headers=headers, json=data)
-            lcd.print(r.status_code, 20, 65)
+            conn_status.setBgColor(lcd.GREEN)
             # be nice send data every 10 minute
-            time.sleep(300)
 
         except Exception as e:
-            lcd.print(str(e), 20, 65)
+            conn_status.setBgColor(lcd.YELLOW)
