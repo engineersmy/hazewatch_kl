@@ -60,9 +60,10 @@ INITIAL = True
 
 # Why 100 than 10? because 25 is 2.5 * 10
 pm25 = 0
-pm100 = 100
+pm100 = 0
 lcd.clear()
 conn_status = M5Circle(40, 10, 10, lcd.RED)
+sub_status = M5Circle(100, 10, 10, lcd.RED)
 
 pm25_label = M5TextBox(62, 40, "PM 2.5", lcd.FONT_DefaultSmall, 0xFFFFFF)
 pm100_label = M5TextBox(163, 40, "PM 10", lcd.FONT_DefaultSmall, 0xFFFFFF)
@@ -70,12 +71,16 @@ pm25_text = M5TextBox(62, 66, str(pm25), lcd.FONT_DejaVu24, 0xFFFFFF)
 pm100_text = M5TextBox(163, 66, str(pm100), lcd.FONT_DejaVu24, 0xFFFFFF)
 last_ticks = time.ticks_ms()
 
+mac_addr = None
 while True:
     # Making data display more reasonable
     if wlan.isconnected():
-        conn_status.setBgColor(lcd.YELLOW)
+        conn_status.setBgColor(lcd.GREEN)
+        conn_status.setBorderColor(lcd.GREEN)
+        CONNECTED = True
     else:
         conn_status.setBgColor(lcd.RED)
+        CONNECTED = False
 
     if not INITIAL:
         current_ticks = time.ticks_ms()
@@ -93,13 +98,18 @@ while True:
         continue
     INITIAL = False
     # Only post if connected
-    if wlan.isconnected():
+    if CONNECTED:
+        print("sending")
+        if not mac_addr:
+            mac_addr = ubinascii.hexlify(wlan.config('mac'), "-").decode()
+            print(mac_addr)
+
         try:
             if config.get("influxdb"):
                 coord_x = config["coord_x"]
                 coord_y = config["coord_y"]
 
-                data = "pmvalue,id={id} pm25={pm25},pm10={pm10},x={coord_x},y={coord_y}".format(pm25=pm25, pm10=pm100, coord_x=coord_x, coord_y=coord_y, id={mac_addr})
+                data = "pmvalue,id={id} pm25={pm25},pm10={pm10},x={coord_x},y={coord_y}".format(pm25=pm25, pm10=pm100, coord_x=coord_x, coord_y=coord_y, id=mac_addr)
                 r = urequests.post(config["endpoint"], data=data)
             else:
                 headers = {"apikey":config["apikey"]}
@@ -108,8 +118,17 @@ while True:
                     "data": {"pm2.5": pm25, "pm10":pm100}
                 }
                 r = urequests.post(config["endpoint"], headers=headers, json=data)
-            conn_status.setBgColor(lcd.GREEN)
+            print(r)
+            sub_status.setBorderColor(lcd.GREEN)
+            sub_status.setBgColor(lcd.GREEN)
+            print("set color")
             # be nice send data every 10 minute
 
         except Exception as e:
-            conn_status.setBgColor(lcd.YELLOW)
+            print("Error")
+            sub_status.setBorderColor(lcd.RED)
+            sub_status.setBgColor(lcd.RED)
+            print(str(e))
+            INITIAL = False
+    else:
+        INITIAL = False
